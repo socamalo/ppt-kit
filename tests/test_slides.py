@@ -153,3 +153,25 @@ def test_move_out_of_range_is_refused(chaos):
     deck = open_deck(str(chaos))
     with pytest.raises(UsageError):
         ops.move_slide(deck.prs, 1, 99)
+
+
+def test_layout_index_spans_all_masters():
+    """`ppt layouts` numbers across masters; add-slide must agree."""
+    from types import SimpleNamespace
+
+    from pptkit.slides import find_layout
+
+    prs = SimpleNamespace(
+        slide_masters=[
+            SimpleNamespace(
+                slide_layouts=[SimpleNamespace(name=f"m1-{i}") for i in range(3)]
+            ),
+            SimpleNamespace(
+                slide_layouts=[SimpleNamespace(name=f"m2-{i}") for i in range(2)]
+            ),
+        ]
+    )
+    assert find_layout(prs, "0").name == "m1-0"
+    assert find_layout(prs, "2").name == "m1-2"
+    assert find_layout(prs, "3").name == "m2-0"
+    assert find_layout(prs, "4").name == "m2-1"
