@@ -72,6 +72,10 @@ def add_textbox(
             if key not in ALIGNMENTS:
                 raise UsageError(f"align must be one of {sorted(ALIGNMENTS)}")
             paragraph.alignment = ALIGNMENTS[key]
+        # an empty box has no runs, so styling would have nothing to land on
+        # and text written later (`ppt set`) would come back unstyled
+        if not paragraph.runs and not paragraph.text:
+            paragraph.add_run()
         for run in paragraph.runs:
             if font_size:
                 run.font.size = Pt(font_size)

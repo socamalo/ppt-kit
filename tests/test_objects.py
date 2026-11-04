@@ -93,6 +93,41 @@ def test_locate_shape_walks_into_groups(chaos):
     assert shape.text_frame.text == "Inside group"
 
 
+def test_empty_box_keeps_its_style_when_filled_later(simple):
+    """Create an empty styled box, then fill it with `set`: the style must hold."""
+    from pptkit.edit import apply_plan, plan_edits
+
+    deck = open_deck(str(simple))
+    objects.add_textbox(
+        deck.prs.slides[0],
+        "",
+        left=1,
+        top=4,
+        width=6,
+        height=1,
+        font_size=14,
+        bold=True,
+        color="01A7F1",
+        font="Microsoft YaHei",
+    )
+    save(deck)
+
+    fresh = open_deck(str(simple))
+    empty = next(b for b in fresh.slide(1).blocks if b.kind == "text" and b.text == "")
+    plan, errors = plan_edits(fresh, {"1": {empty.id: "Now it has text"}})
+    assert not errors
+    apply_plan(plan)
+    save(fresh)
+
+    reopened = open_deck(str(simple))
+    block = next(b for b in reopened.slide(1).blocks if b.text == "Now it has text")
+    run = block.target.text_frame.paragraphs[0].runs[0]
+    assert run.font.size.pt == 14
+    assert run.font.bold is True
+    assert str(run.font.color.rgb) == "01A7F1"
+    assert run.font.name == "Microsoft YaHei"
+
+
 def test_added_table_cells_are_editable_by_id(simple):
     from pptkit.edit import apply_plan, plan_edits
 
