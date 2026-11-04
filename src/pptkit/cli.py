@@ -217,17 +217,18 @@ def cmd_set(args) -> dict:
         )
         if not hits:
             raise NotFoundError(f"no match for '{args.replace}'")
+        flags = re.IGNORECASE if args.ignore_case else 0
         for slide, block in hits:
-            new_value = (
-                args.with_text
-                if not args.regex
-                else re.sub(
-                    args.replace,
-                    args.with_text,
-                    block.text,
-                    flags=re.IGNORECASE if args.ignore_case else 0,
+            # replace *inside* the block: rewriting the whole block would throw
+            # away the rest of the line around the match
+            if args.regex:
+                new_value = re.sub(args.replace, args.with_text, block.text, flags=flags)
+            elif args.ignore_case:
+                new_value = re.sub(
+                    re.escape(args.replace), args.with_text, block.text, flags=flags
                 )
-            )
+            else:
+                new_value = block.text.replace(args.replace, args.with_text)
             edits.setdefault(str(slide.index), {})[block.id] = new_value
 
     if not edits:

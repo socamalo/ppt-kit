@@ -146,6 +146,22 @@ def test_out_flag_writes_a_copy(chaos, tmp_path):
     assert "Unique cell" in [b.text for b in open_deck(str(chaos)).slide(1).blocks]
 
 
+def test_replace_keeps_the_rest_of_the_line(simple):
+    """--replace swaps the match inside the block, not the whole block."""
+    run(
+        "add-textbox", simple, "--slide", "1",
+        "--text", "The quick brown fox jumps over the lazy dog",
+        "--left", "1", "--top", "4", "--width", "8", "--json",
+    )
+    run("set", simple, "--replace", "brown", "--with", "red", "--json")
+    run("set", simple, "--replace", "LAZY", "--with", "sleepy", "--ignore-case", "--json")
+
+    fresh = open_deck(str(simple))
+    assert "The quick red fox jumps over the sleepy dog" in [
+        b.text for b in fresh.slide(1).blocks
+    ]
+
+
 def test_regex_replace(chaos):
     payload, _, _ = run(
         "set", chaos, "--replace", r"^(Second|Third) page only$", "--with", r"\1 page", "--regex", "--json"

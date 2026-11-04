@@ -53,8 +53,21 @@ def list_layouts(prs) -> list[dict]:
     return out
 
 
+def all_layouts(prs) -> list:
+    """Every layout across every master, in the order `ppt layouts` prints.
+
+    ``prs.slide_layouts`` only reaches the first master, so a deck with two
+    masters (common for real templates) would report 29 layouts but refuse
+    index 20.
+    """
+    layouts = []
+    for master in prs.slide_masters:
+        layouts.extend(master.slide_layouts)
+    return layouts
+
+
 def find_layout(prs, selector: str | None):
-    layouts = list(prs.slide_layouts)
+    layouts = all_layouts(prs)
     if selector is None:
         return layouts[0] if layouts else None
     text = str(selector).strip()
