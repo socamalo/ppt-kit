@@ -58,7 +58,8 @@ shape id, not the content.
 ## Install
 
 ```bash
-uv tool install --from . ppt-kit     # or: uv tool install ppt-kit (once published)
+git clone https://github.com/socamalo/ppt-kit
+uv tool install --from ./ppt-kit ppt-kit
 ppt --version
 ```
 
