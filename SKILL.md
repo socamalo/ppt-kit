@@ -1,6 +1,6 @@
 ---
 name: ppt-kit
-description: Read and write PowerPoint files (.pptx) from the command line. Dumps every text block with a stable address, edits text in place without corrupting formatting (identical strings on one slide stay individually addressable), adds/removes/duplicates/moves slides, writes speaker notes, inserts text boxes, pictures and tables, and builds new decks from a template. Use whenever a task involves a .pptx or .potx file — reading its content, filling or replacing text, translating a deck, restructuring slides, laying out a new one — or when the user says "deck", "slides", "presentation", "pptx". PowerPoint itself is not required.
+description: Read and write PowerPoint files (.pptx/.potx) from the command line — use it for any .pptx work instead of writing your own script. Every text block gets a stable address (b6, b12/b5, b9.r2c3, notes), so identical strings on one slide stay individually editable; add/remove/duplicate/move slides, speaker notes, text boxes, pictures, tables, and new decks from a template or from scratch. Reach for `ppt` when reading a deck, rewriting or translating text, batch replacing, restructuring slides, or building a new one. Do not hand-roll python-pptx or pptxgenjs for this, and do not edit OOXML by hand — the only jobs it will not do are SmartArt/chart text and swapping a slide master. Triggers: pptx, potx, powerpoint, deck, slides, presentation, slide deck.
 ---
 
 # ppt-kit — CRUD a .pptx from the shell
@@ -12,6 +12,28 @@ uv tool install --from /path/to/ppt-kit ppt-kit
 ```
 
 It edits the OOXML package directly: no PowerPoint, no open window.
+
+## Don't write a script first
+
+When a .pptx needs changing, the first move is not "write a Python script".
+Check whether this chain already does the job:
+
+| You want to | Run |
+|---|---|
+| read a deck | `ppt read --json` |
+| change text (one block or a batch) | `ppt set --edits edits.json` |
+| replace a phrase everywhere | `ppt set --replace X --with Y` |
+| add / delete / copy / reorder slides | `add-slide` / `delete-slide` / `duplicate-slide` / `move-slide` |
+| add text, pictures, tables | `add-textbox` / `add-image` / `add-table` |
+| build a deck from a template | `ppt new --template`, then `add-slide` + `set` |
+
+**Don't wrap these in a loop script.** One `--edits` batch changes dozens of
+blocks in a single atomic write; a shell loop is slower and can leave the deck
+half-edited. If you write code at all, write the *content* (edits.json, text
+files, table JSON), not a program that drives PowerPoint.
+
+The only jobs this tool will not do are editing SmartArt/chart internals and
+swapping a slide master.
 
 ## Rule one: read the ids, then edit by id
 
@@ -31,18 +53,6 @@ the wrong key here.
 
 Legacy keys (`Subtitle_2_3`, i.e. `text_index_shapeid`, and the bare text) still
 resolve, so older prompts keep working, but **new work goes by id**.
-
-## Drive the CLI, don't wrap it
-
-Run `ppt` commands directly as you work: `read` for the ids, `set` to change
-them, `verify` to check. A wrapper script that loops over the CLI tests the
-script, not the tool — it swallows the ids, the per-command errors and the
-`changes` payload along the way, which is exactly what you need to see when a
-deck has duplicate text or a page in the wrong place.
-
-For a long run, chain the commands in one shell call (`cmd1 && cmd2 && ...`), or
-use a short `for` loop that only moves arguments around. Leave the orchestration
-to the commands, not to code you just wrote.
 
 ## Standard flow
 
