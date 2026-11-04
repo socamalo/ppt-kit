@@ -32,6 +32,18 @@ the wrong key here.
 Legacy keys (`Subtitle_2_3`, i.e. `text_index_shapeid`, and the bare text) still
 resolve, so older prompts keep working, but **new work goes by id**.
 
+## Drive the CLI, don't wrap it
+
+Run `ppt` commands directly as you work: `read` for the ids, `set` to change
+them, `verify` to check. A wrapper script that loops over the CLI tests the
+script, not the tool — it swallows the ids, the per-command errors and the
+`changes` payload along the way, which is exactly what you need to see when a
+deck has duplicate text or a page in the wrong place.
+
+For a long run, chain the commands in one shell call (`cmd1 && cmd2 && ...`), or
+use a short `for` loop that only moves arguments around. Leave the orchestration
+to the commands, not to code you just wrote.
+
 ## Standard flow
 
 ```bash
